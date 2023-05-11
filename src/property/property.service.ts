@@ -14,4 +14,8 @@ export class PropertyService {
         const createdProperty = new this.propertyModel(property);
         return createdProperty.save();
     }
+    async getAll(): Promise<Property[]> {
+        return this.propertyModel.find();
+    }
+
 }

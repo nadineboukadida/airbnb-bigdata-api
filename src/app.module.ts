@@ -5,8 +5,8 @@ import { DockerService } from './docker/docker.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PropertyService } from './property/property.service';
 import { PropertyModule } from './property/property.module';
-import { StreamPropertyModule } from './stream-property/stream-property.module';
 import { WebsocketGateway } from './websocket.gateway';
+import { StreamPropertyModule } from './stream-property/stream-property.module';
 
 @Module({
   imports: [

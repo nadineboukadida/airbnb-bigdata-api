@@ -4,15 +4,17 @@ import * as Docker from 'dockerode';
 import { Server } from 'http';
 import { PropertyService } from 'src/property/property.service';
 import { Property } from 'src/property/schemas/property.schema';
+import { StreamProperty } from 'src/stream-property/schemas/stream-property.schema';
 import { StreamPropertyService } from 'src/stream-property/stream-property.service';
 import { WebsocketGateway } from 'src/websocket.gateway';
-import { StreamProperty } from 'stream-property/schemas/stream-property.schema';
 
 @Injectable()
 export class DockerService {
     private readonly docker = new Docker();
     private readonly containerId = "a08b44e6f916"
-    constructor(private streamPropertyService: StreamPropertyService, private readonly websocketGateway: WebsocketGateway) {
+    constructor(private streamPropertyService: StreamPropertyService,
+        private readonly websocketGateway: WebsocketGateway,
+        private propertyService: PropertyService) {
 
 
     }
@@ -67,24 +69,30 @@ export class DockerService {
                 const infos = line.split(',')
                 const property = new StreamProperty()
                 property.city = infos[0]
-                property.price = +infos[1]
+                property.price = isNaN(+infos[1]) ? 0 : +infos[1]
                 this.streamPropertyService.create(property)
                 result.push(line);
             }
         })
-
-
-
+        this.wsSendData(result);
         return result;
     }
 
-    @Cron('1 * * * * *')
-    async extractAndSendData() {
-        console.log('web socket and cron job enabled')
-        const command = ['cat', 'out'];
-        const data = await this.execInContainer(command)
-        const extractedData = this.extractData(data)
-        this.websocketGateway.server.emit('data', extractedData);
+    @Cron('*/5 * * * * *')
+    async wsSendData(data) {
+        console.log('send data')
+        this.websocketGateway.server.emit('data', data);
     }
+
+    @Cron('1 * * * * *')
+    async processBatchData() {
+        const data = await this.propertyService.getAll();
+        let result = ""
+        data.forEach((element) => {
+            result = result + `${element.city},${element.price}\n`
+        })
+        return result
+    }
+
 
 }

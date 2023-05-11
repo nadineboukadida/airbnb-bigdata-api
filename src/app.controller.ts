@@ -20,15 +20,22 @@ export class AppController {
     const content = `${requestBody.city},${requestBody.price}\n`
     const command = ['sh', '-c', `printf "${content}" >> input/airbnb.csv`];
     this.dockerService.execInContainer(command);
-    return this.dockerService.triggerProducer()
+    this.dockerService.triggerProducer()
+    return
   }
 
   @Get()
   async getProcessedData() {
-    this.dockerService.extractAndSendData();
     const command = ['cat', 'out'];
     const data = await this.dockerService.execInContainer(command)
     return this.dockerService.extractData(data)
+  }
+
+  @Get('/all')
+  async getAll() {
+    const data = this.dockerService.processBatchData();
+    const command = ['sh', '-c', `printf "${data}" > input/airbnb.csv`];
+    this.dockerService.execInContainer(command);
   }
 
 }
