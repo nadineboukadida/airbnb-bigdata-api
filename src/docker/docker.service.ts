@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import * as Docker from 'dockerode';
+import { Server } from 'http';
 import { PropertyService } from 'src/property/property.service';
 import { Property } from 'src/property/schemas/property.schema';
 import { StreamPropertyService } from 'src/stream-property/stream-property.service';
+import { WebsocketGateway } from 'src/websocket.gateway';
 import { StreamProperty } from 'stream-property/schemas/stream-property.schema';
 
 @Injectable()
 export class DockerService {
     private readonly docker = new Docker();
     private readonly containerId = "a08b44e6f916"
-    constructor( private streamPropertyService: StreamPropertyService) {
+    constructor(private streamPropertyService: StreamPropertyService, private readonly websocketGateway: WebsocketGateway) {
+
 
     }
     async execInContainer(command: string[]): Promise<string> {
@@ -69,6 +73,18 @@ export class DockerService {
             }
         })
 
+
+
         return result;
     }
+
+    @Cron('1 * * * * *')
+    async extractAndSendData() {
+        console.log('web socket and cron job enabled')
+        const command = ['cat', 'out'];
+        const data = await this.execInContainer(command)
+        const extractedData = this.extractData(data)
+        this.websocketGateway.server.emit('data', extractedData);
+    }
+
 }

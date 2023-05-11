@@ -4,11 +4,12 @@ import { DockerService } from './docker/docker.service';
 import { createPropertyDTO } from './property/dtos/create-property.dto';
 import { Property } from './property/schemas/property.schema';
 import { PropertyService } from './property/property.service';
+import { WebsocketGateway } from './websocket.gateway';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService, private dockerService: DockerService,
-    private propertyService: PropertyService) { }
+  constructor(private readonly appService: AppService, private dockerService: DockerService
+    , private propertyService: PropertyService) { }
 
   @Post()
   async updateDatabase(@Body() requestBody: createPropertyDTO): Promise<any> {
@@ -24,8 +25,10 @@ export class AppController {
 
   @Get()
   async getProcessedData() {
+    this.dockerService.extractAndSendData();
     const command = ['cat', 'out'];
     const data = await this.dockerService.execInContainer(command)
     return this.dockerService.extractData(data)
   }
+
 }

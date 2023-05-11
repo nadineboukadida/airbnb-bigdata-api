@@ -10,8 +10,6 @@ export class StreamPropertyService {
     ) { }
 
     async create(property: StreamProperty): Promise<StreamProperty> {
-        console.log('hirgdrgdrgdrgdg')
-
         const createdProperty = new this.streamPropertyModel(property);
 
         const hi = await createdProperty.save();

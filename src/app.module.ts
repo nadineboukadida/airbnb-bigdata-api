@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PropertyService } from './property/property.service';
 import { PropertyModule } from './property/property.module';
 import { StreamPropertyModule } from './stream-property/stream-property.module';
+import { WebsocketGateway } from './websocket.gateway';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { StreamPropertyModule } from './stream-property/stream-property.module';
     StreamPropertyModule,
   ],
   controllers: [AppController],
-  providers: [AppService, DockerService],
+  providers: [AppService, DockerService,WebsocketGateway],
 
 })
 export class AppModule { }
